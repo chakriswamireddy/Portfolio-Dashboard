@@ -10,14 +10,14 @@ import {
   export const stockings = pgTable("stockings", {
     id: serial("id").primaryKey(),
   
-    symbol: varchar("symbol", { length: 20 }).notNull(),
+    symbol: varchar("symbol", { length: 20 }).unique().notNull(),
     exchange: varchar("exchange", { length: 10 }).notNull(),
   
     stockName: varchar("stock_name", { length: 100 }).notNull(),
     sector: varchar("sector", { length: 50 }).notNull(),
   
     purchasePrice: numeric("purchase_price", { precision: 12, scale: 2 }),
-    quantity: integer("quantity").notNull(),
+    quantity: integer("quantity"),
   
     cmp: numeric("cmp", { precision: 12, scale: 2 }),
     cmpUpdatedAt: timestamp("cmp_updated_at"),

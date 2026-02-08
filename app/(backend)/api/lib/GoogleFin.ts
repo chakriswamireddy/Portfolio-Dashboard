@@ -2,19 +2,20 @@
 
 import { chromium } from "playwright";
 import puppeteer from "puppeteer";
+import { getBrowser } from "./browser";
 
 export async function scrapeGoogleFundamentals({
     symbol, exchange
 }: {
     symbol: string;
-    exchange:string;
+    exchange: string;
 }) {
-    const browser = await puppeteer.launch({
-        args: ["--no-sandbox", "--disable-setuid-sandbox"]
-    });
+
+
+    const browser = await getBrowser();
+    const page = await browser.newPage();
 
     try {
-        const page = await browser.newPage();
         const url = `https://www.google.com/finance/quote/${symbol}:${exchange}`;
 
         await page.goto(url, {
@@ -52,13 +53,13 @@ export async function scrapeGoogleFundamentals({
                     for (let j = i + 1; j < elements.length; j++) {
                         const val = elements[j].textContent?.trim();
                         if (!val) continue;
-                      
+
                         const num = Number(val.replace(/[₹,]/g, ""));
                         if (num > 0) {
-                          earnings = val;
-                          break;
+                            earnings = val;
+                            break;
                         }
-                      }                      
+                    }
                 }
                 if (peRatio && earnings) break;
             }
@@ -66,9 +67,7 @@ export async function scrapeGoogleFundamentals({
             return { peRatio, earnings };
         });
 
-        console.log(data)
-
-        await browser.close();
+        // console.log(data)
 
         return {
             success: true,
@@ -78,12 +77,14 @@ export async function scrapeGoogleFundamentals({
         };
 
     } catch (error) {
-        await browser.close();
         return {
             success: false,
             error,
             timestamp: new Date().toISOString()
         };
+    }
+    finally {
+        await page.close();  
     }
 }
 

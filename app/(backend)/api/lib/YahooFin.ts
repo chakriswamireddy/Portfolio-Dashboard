@@ -1,30 +1,28 @@
-import * as cheerio from "cheerio";
 
-export async function scrapeYahooCMP(symbol: string) {
-  const url = `https://finance.yahoo.com/quote/${symbol}.NS`;
+
+export async function fetchYahooCMP(symbol: string) {
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.NS?interval=1m&range=1d`;
 
   const res = await fetch(url, {
     headers: {
       "User-Agent": "Mozilla/5.0",
-      "Accept-Language": "en-US,en;q=0.9"
+      "Accept": "application/json"
     }
   });
 
   if (!res.ok) {
-    throw new Error("Failed to load Yahoo HTML");
+    return ""
   }
 
-  const html = await res.text();
-  const $ = cheerio.load(html);
+  console.log(res.ok)
 
-  const priceText = $('fin-streamer[data-field="regularMarketPrice"]').first().text();
+  const json = await res.json();
 
-  const cmp = Number(priceText.replace(/,/g, ""));
+  const result = json.chart?.result?.[0];
+  const meta = result?.meta;
 
-  console.log("cmp",cmp)
-
-  return {
-    cmp,
-    fetchedAt: new Date()
-  };
+  return (meta?.regularMarketPrice ?? null)
+ 
 }
+
+
