@@ -1,0 +1,31 @@
+[
+  { "name": "IDFC First Bank", "exchange": "NSE", "code": "IDFCFIRSTB", "sector": "Financials" },
+  { "name": "Bajaj Finance", "exchange": "NSE", "code": "BAJFINANCE", "sector": "Financials" },
+  { "name": "ICICI Bank", "exchange": "NSE", "code": "ICICIBANK", "sector": "Financials" },
+  { "name": "Bajaj Finserv", "exchange": "NSE", "code": "BAJAJFINSV", "sector": "Financials" },
+  { "name": "Savani Financials", "exchange": "NSE", "code": "SAVANIFIN", "sector": "Financials" },
+
+  { "name": "Affle India", "exchange": "NSE", "code": "AFFLE", "sector": "Technology" },
+  { "name": "LTIMindtree", "exchange": "NSE", "code": "LTIM", "sector": "Technology" },
+  { "name": "Tata Technologies", "exchange": "NSE", "code": "TATATECH", "sector": "Technology" },
+  { "name": "BLS International Services", "exchange": "NSE", "code": "BLS", "sector": "Technology" },
+  { "name": "Tania Industries", "exchange": "NSE", "code": "TANIA", "sector": "Technology" },
+
+  { "name": "Tata Consumer Products", "exchange": "NSE", "code": "TATACONSUM", "sector": "Consumer" },
+  { "name": "Hindalco Industries", "exchange": "NSE", "code": "HINDALCO", "sector": "Consumer" },
+
+  { "name": "Tata Power", "exchange": "NSE", "code": "TATAPOWER", "sector": "Power" },
+  { "name": "KPI Green Energy", "exchange": "NSE", "code": "KPIGREEN", "sector": "Power" },
+  { "name": "Suzlon Energy", "exchange": "NSE", "code": "SUZLON", "sector": "Power" },
+  { "name": "Gensol Engineering", "exchange": "NSE", "code": "GENSOL", "sector": "Power" },
+
+  { "name": "Hariom Pipe Industries", "exchange": "NSE", "code": "HARIOMPIPE", "sector": "Pipes" },
+  { "name": "Astral", "exchange": "NSE", "code": "ASTRAL", "sector": "Pipes" },
+  { "name": "Polycab India", "exchange": "NSE", "code": "POLYCAB", "sector": "Pipes" },
+
+  { "name": "Clean Science and Technology", "exchange": "NSE", "code": "CLEAN", "sector": "Others" },
+  { "name": "Deepak Nitrite", "exchange": "NSE", "code": "DEEPAKNTR", "sector": "Others" },
+  { "name": "Fine Organic Industries", "exchange": "NSE", "code": "FINEORG", "sector": "Others" },
+  { "name": "Gravita India", "exchange": "NSE", "code": "GRAVITA", "sector": "Others" },
+  { "name": "SBI Life Insurance", "exchange": "NSE", "code": "SBILIFE", "sector": "Others" }
+]
