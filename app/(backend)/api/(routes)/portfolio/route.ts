@@ -2,13 +2,13 @@ import { NextResponse } from "next/server";
 import { db } from "@/app/(backend)/api/drizzle/setup";
 import { holdings } from "@/app/(backend)/api/models/holdings";
 import { stockings } from "@/app/(backend)/api/models/stockings";
-import { eq, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { cookies } from "next/headers";
 
 export async function GET(req: Request) {
     try {
         const cookieStore = await cookies();
-        const userId = "cac4c179-8723-4535-938a-ca2d8549e594";
+        const userId = cookieStore.get("userId")?.value;
         if (!userId) {
             return NextResponse.json(
                 { success: false, error: "Invalid user session" },
@@ -19,7 +19,8 @@ export async function GET(req: Request) {
 
         const portfolio = await db
             .select({
-                holdingId: holdings.id,
+                id: holdings.id,
+                stockId: holdings.stockId,
                 symbol: stockings.symbol,
                 stockName: stockings.stockName,
                 sector: stockings.sector,
@@ -92,7 +93,7 @@ export async function GET(req: Request) {
             totals: totals[0] ?? null,
             sectors: sectorSummary
         });
-        
+
     } catch (error: any) {
         console.error(error);
         return NextResponse.json(
@@ -103,3 +104,135 @@ export async function GET(req: Request) {
 }
 
 
+
+
+export async function POST(req: Request) {
+    try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get("userId")?.value;
+        if (!userId) {
+            return NextResponse.json(
+                { error: "Invalid user session" },
+                { status: 400 }
+            );
+        }
+        const body = await req.json();
+        const { stockId, quantity, purchasePrice } = body;
+
+        if (!stockId || !quantity || !purchasePrice) {
+            return NextResponse.json(
+                { error: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        await db.insert(holdings).values({
+            userId,
+            stockId,
+            quantity,
+            purchasePrice: purchasePrice.toString(),
+            purchasedAt: new Date(),
+            updatedAt: new Date()
+        });
+
+        return NextResponse.json({ success: true });
+
+    } catch {
+        return NextResponse.json(
+            { error: "Failed to create holding" },
+            { status: 500 }
+        );
+    }
+}
+
+
+
+export async function PUT(req: Request) {
+    try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get("userId")?.value;
+
+
+        if (!userId) {
+            return NextResponse.json(
+                { error: "Invalid user session" },
+                { status: 400 }
+            );
+        }
+        const holdingId = new URL(req.url).searchParams.get("id");
+
+        if (!holdingId) {
+            return NextResponse.json(
+                { error: "Missing holding ID" },
+                { status: 404 }
+            );
+        }
+
+        const body = await req.json();
+        const { stockId, quantity, purchasePrice } = body;
+
+        if (!stockId || !quantity || !purchasePrice) {
+            return NextResponse.json(
+                { error: "Missing required fields" },
+                { status: 400 }
+            );
+        }
+
+        await db.update(holdings)
+            .set({
+                quantity,
+                purchasePrice: purchasePrice.toString(),
+                updatedAt: new Date()
+            })
+            .where(
+                and(eq(holdings.id, holdingId), eq(holdings.userId, userId))
+            )
+        return NextResponse.json({ success: true });
+
+    } catch {
+        return NextResponse.json(
+            { error: "Failed to create holding" },
+            { status: 500 }
+        );
+    }
+}
+
+
+export async function DELETE(req: Request) {
+    try {
+        const cookieStore = await cookies();
+        const userId = cookieStore.get("userId")?.value;
+
+
+        if (!userId) {
+            return NextResponse.json(
+                { error: "Invalid user session" },
+                { status: 400 }
+            );
+        }
+        const holdingId = new URL(req.url).searchParams.get("id");
+
+        if (!holdingId) {
+            return NextResponse.json(
+                { error: "Missing holding ID" },
+                { status: 404 }
+            );
+        }
+
+
+
+        await db.delete(holdings)
+            .where(
+                and(
+                    eq(holdings.id, holdingId), eq(holdings.userId, userId)
+                )
+            )
+        return NextResponse.json({ success: true });
+
+    } catch {
+        return NextResponse.json(
+            { error: "Failed to create holding" },
+            { status: 500 }
+        );
+    }
+}

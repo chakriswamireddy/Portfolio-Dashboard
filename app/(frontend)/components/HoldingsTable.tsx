@@ -4,85 +4,43 @@ import {
   ColumnDef,
   flexRender,
   getCoreRowModel,
+  getGroupedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
-
-type Holding = {
-  stockName: string;
-  symbol: string;
-  exchange: string;
-  sector: string;
-  quantity: number;
-  purchasePrice: number;
-  cmp: number;
-  investment: number;
-  presentValue: number;
-  gainLoss: number;
-};
-
-type SectorSummary = {
-  sector: string;
-  totalInvestment: number;
-  totalPresentValue: number;
-  gainLoss: number;
-};
-
-type totalSummary = {
-  totalInvestment: number;
-  totalPresentValue: number;
-  totalGainLoss: number;
-};
+import HoldingForm from "./HoldingForm";
+import { HoldingFormData, SectorSummary, totalSummary } from "@/lib/types";
+import { usePortfolioStore } from "../store/usePortolioStore";
 
 export default function HoldingsTable() {
-  const [data, setData] = useState<{
-    portfolio: Holding[];
-    sectors: SectorSummary[];
-    totals: totalSummary;
-  }>({
-    portfolio: [],
-    sectors: [],
-    totals: {
-      totalInvestment: 0,
-      totalPresentValue: 0,
-      totalGainLoss: 0,
-    },
-  });
+  const { holdings, loading } = usePortfolioStore();
 
-  const [loading, setLoading] = useState(true);
+  // console.log("hodlings", holdings);
+  const [grouping, setGrouping] = useState<string[]>(["sector"]);
 
-  useEffect(() => {
-    fetch("/api/portfolio")
-      .then((res) => res.json())
-      .then((data) => {
-        setData({
-          portfolio: data.portfolio ?? [],
-          sectors: data.sectors ?? [],
-          totals: data.totals ?? {
-            totalInvestment: 0,
-            totalPresentValue: 0,
-            totalGainLoss: 0,
-          },
-        });
-      })
-      .catch(() => {
-        setData({
-          portfolio: [],
-          sectors: [],
-          totals: {
-            totalInvestment: 0,
-            totalPresentValue: 0,
-            totalGainLoss: 0,
-          },
-        });
-      })
-      .finally(() => {
-        setLoading(false);
-      });
-  }, []);
 
-  const columns = useMemo<ColumnDef<Holding>[]>(
+  const columns = useMemo<ColumnDef<HoldingFormData>[]>(
     () => [
+      {
+        accessorKey: "sector",
+        header: "Sector",
+      },
+      
+      {
+        header: "Edit",
+        accessorKey: "edit",
+        cell: (info) => {
+          const id = info.row.original.id;
+          // console.log("id", info.row.original);
+          // console.log((holdings.portfolio.find((item) => item.id ===  id )))
+          return (
+            <HoldingForm
+              initialData={holdings.portfolio.find((item) => item.id ===  id )}
+              submitLabel="Edit"
+            />
+          );
+        },
+      },
       { header: "Stock", accessorKey: "stockName" },
       { header: "Symbol", accessorKey: "symbol" },
       { header: "Qty", accessorKey: "quantity" },
@@ -131,13 +89,17 @@ export default function HoldingsTable() {
         },
       },
     ],
-    []
+    [holdings.portfolio]
   );
 
   const table = useReactTable({
-    data: data.portfolio ?? [],
+    data: holdings.portfolio ?? [],
     columns,
+    state: {
+      grouping,
+    },
     getCoreRowModel: getCoreRowModel(),
+    getGroupedRowModel: getGroupedRowModel()
   });
 
   if (loading) {

@@ -28,5 +28,6 @@ export const holdings = pgTable("holdings", {
         scale: 2
     }).notNull(),
 
-    purchasedAt: timestamp("purchased_at").defaultNow().notNull()
+    purchasedAt: timestamp("purchased_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
