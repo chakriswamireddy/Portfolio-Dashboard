@@ -1,6 +1,4 @@
-// import { scrapeGoogleFundamentals } from "./scraper";
-// import { db } from "./db";
-// import { stockings } from "./schema";
+
 import { eq } from "drizzle-orm";
 import { stockings } from "./app/(backend)/api/models/stockings";
 import { db } from "./app/(backend)/api/drizzle/setup";

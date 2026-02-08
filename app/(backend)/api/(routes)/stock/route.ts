@@ -1,4 +1,9 @@
-[
+import { NextResponse } from "next/server";
+import { db } from "../../drizzle/setup";
+import { StockingInterface, stockings } from "../../models/stockings";
+
+
+const stockData = [
   { "name": "IDFC First Bank", "exchange": "NSE", "code": "IDFCFIRSTB", "sector": "Financials" },
   { "name": "Bajaj Finance", "exchange": "NSE", "code": "BAJFINANCE", "sector": "Financials" },
   { "name": "ICICI Bank", "exchange": "NSE", "code": "ICICIBANK", "sector": "Financials" },
@@ -29,3 +34,64 @@
   { "name": "Gravita India", "exchange": "NSE", "code": "GRAVITA", "sector": "Others" },
   { "name": "SBI Life Insurance", "exchange": "NSE", "code": "SBILIFE", "sector": "Others" }
 ]
+
+export async function GET() {
+    try {
+
+        const stockData = await db.select().from(stockings);
+
+        return Response.json({
+            success: true,
+            data: stockData
+        });
+    } catch (error: any) {
+        return Response.json(
+            { success: false, error: error },
+            { status: 500 }
+        );
+    }
+}
+
+interface StockSeed {
+  name: string;
+  code: string;
+  sector: string;
+}
+
+
+export async function POST() {
+    try {
+
+      if (!Array.isArray(stockData)) {
+        return NextResponse.json(
+          { success: false, error: "Invalid stocks.json format" },
+          { status: 400 }
+        );
+      }
+  
+      const values = (stockData as StockSeed[]).map((s) => ({
+        stockName: s.name,
+        symbol: s.code,
+        sector: s.sector,
+        exchange: "NSE"
+      }));
+  
+      await db
+        .insert(stockings)
+        .values(values)
+        .onConflictDoNothing({ target: stockings.symbol });
+  
+      return NextResponse.json({
+        success: true,
+        insertedCount: values.length
+      });
+    } catch (error: any) {
+      console.error(error);
+      return NextResponse.json(
+        { success: false, error: error },
+        { status: 500 }
+      );
+    }
+  }
+
+

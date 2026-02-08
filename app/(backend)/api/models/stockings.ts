@@ -4,21 +4,34 @@ import {
     varchar,
     numeric,
     integer,
-    timestamp
+    timestamp,
+    uuid
   } from "drizzle-orm/pg-core";
+
+
+  export interface StockingInterface {
+    id: string;
+    symbol: string;
+    exchange: string;
+    stockName: string;
+    sector: string;
+    cmp: number | null;
+    cmpUpdatedAt: Date | null;
+    peRatio: number | null;
+    earnings: number | null;
+    fundamentalsUpdatedAt: Date | null;
+    createdAt: Date;
+  }
   
   export const stockings = pgTable("stockings", {
-    id: serial("id").primaryKey(),
+    id: uuid("id").defaultRandom().primaryKey(),
   
     symbol: varchar("symbol", { length: 20 }).unique().notNull(),
     exchange: varchar("exchange", { length: 10 }).notNull(),
   
     stockName: varchar("stock_name", { length: 100 }).notNull(),
     sector: varchar("sector", { length: 50 }).notNull(),
-  
-    purchasePrice: numeric("purchase_price", { precision: 12, scale: 2 }),
-    quantity: integer("quantity"),
-  
+
     cmp: numeric("cmp", { precision: 12, scale: 2 }),
     cmpUpdatedAt: timestamp("cmp_updated_at"),
   
@@ -27,6 +40,5 @@ import {
     fundamentalsUpdatedAt: timestamp("fundamentals_updated_at"),
   
     createdAt: timestamp("created_at").defaultNow(),
-    // updatedAt: timestamp("updated_at").defaultNow()
   });
   
