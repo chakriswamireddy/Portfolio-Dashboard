@@ -8,18 +8,25 @@ on:
 jobs:
   scrape:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
 
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          node-version: "22.x"
+          ref: main
+          fetch-depth: 1
 
-      - run: node -v
-      - run: npm -v
-      - run: npm ci --include=dev
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
 
-      - run: npm run scrap
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run scraper
+        run: npm run scrap
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
