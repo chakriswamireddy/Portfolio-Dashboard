@@ -76,7 +76,7 @@ export default function HoldingForm({
     <>
       <button
         onClick={() => setOpen(true)}
-        className="px-4 py-2 cursor-pointer bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition-colors mt-4"
+        className={`px-4 py-2 cursor-pointer ${initialData?.id ?  " border border-pink-500":"bg-pink-500"}   text-white rounded-lg hover:bg-pink-600 transition-colors`}
       >
         {submitLabel}
       </button>

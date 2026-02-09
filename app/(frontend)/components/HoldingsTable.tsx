@@ -24,7 +24,7 @@ export default function HoldingsTable() {
       {
         accessorKey: "sector",
         header: "Sector",
-        enableHiding: true,
+        // enableHiding: true,
       },
 
       {
@@ -68,6 +68,26 @@ export default function HoldingsTable() {
           const val = Number(info.getValue());
           return `₹${val.toFixed(2)}`;
         },
+      },
+      {
+        header: "Portfolio %",
+        accessorKey: "portfolioPercentage",
+        cell: (info) => {
+          const val = Number(info.getValue());
+          return `${val.toFixed(2)}%`;
+        },
+      },
+      {
+        header: "PE Ratio",
+        accessorKey: "peRatio",
+        cell: (info) => {
+          const val = Number(info.getValue());
+          return `${val.toFixed(2)}`;
+        },
+      },
+      {
+        header: "Exchange",
+        accessorKey: "exchange",
       },
       {
         header: "Present Value",
@@ -126,12 +146,8 @@ export default function HoldingsTable() {
     getExpandedRowModel: getExpandedRowModel(),
   });
 
-  if (loading) {
-    return <p className="text-zinc-400">Loading portfolio...</p>;
-  }
-
   return (
-    <div className="overflow-hidden rounded-xl border border-zinc-800 bg-zinc-900">
+    <div className="overflow-auto rounded-xl border border-zinc-800 bg-zinc-900">
       <table className="w-full border-collapse text-sm">
         <thead className="bg-zinc-800 text-zinc-300">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -149,82 +165,95 @@ export default function HoldingsTable() {
         </thead>
 
         <tbody>
-          {table.getRowModel().rows.map((row) => {
-            if (row.getIsGrouped()) {
-              const sector = row.getValue("sector") as string;
-              const summary = sectorSummaryMap[sector];
-
-              return (
-                <tr
-                  key={row.id}
-                  className="border-t border-zinc-700 bg-zinc-800 font-semibold"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    const columnId = cell.column.id;
-
-                    if (columnId === "sector") {
-                      return (
-                        <td key={cell.id} className="px-4 py-3">
-                          {sector}
-                        </td>
-                      );
-                    }
-
-                    if (columnId === "investmentValue") {
-                      return (
-                        <td key={cell.id} className="px-4 py-3">
-                          ₹
-                          {Number(
-                            summary?.totalInvestment ?? 0
-                          ).toLocaleString()}
-                        </td>
-                      );
-                    }
-
-                    if (columnId === "presentValue") {
-                      return (
-                        <td key={cell.id} className="px-4 py-3">
-                          ₹
-                          {Number(
-                            summary?.totalPresentValue ?? 0
-                          ).toLocaleString()}
-                        </td>
-                      );
-                    }
-
-                    if (columnId === "gainLoss") {
-                      const val = Number(summary?.gainLoss ?? 0);
-                      return (
-                        <td
-                          key={cell.id}
-                          className={`px-4 py-3 ${
-                            val >= 0 ? "text-emerald-400" : "text-red-400"
-                          }`}
-                        >
-                          ₹{val.toLocaleString()}
-                        </td>
-                      );
-                    }
-
-                    return <td key={cell.id} className="px-4 py-3"></td>;
-                  })}
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <tr key={i} className="border-t border-zinc-800">
+                  {table.getVisibleFlatColumns().map((column) => (
+                    <td key={column.id} className="px-4 py-3">
+                      <div className="h-4 w-full animate-pulse rounded bg-zinc-700/60" />
+                    </td>
+                  ))}
                 </tr>
-              );
-            }
+              ))
+            : table.getRowModel().rows.map((row) => {
+                if (row.getIsGrouped()) {
+                  const sector = row.getValue("sector") as string;
+                  const summary = sectorSummaryMap[sector];
 
-            return (
-              <tr
-                key={row.id}
-                className="border-t border-zinc-800 hover:bg-zinc-800/40"
-              >
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-4 py-3">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            );
-          })}
+                  return (
+                    <tr
+                      key={row.id}
+                      className="border-t border-zinc-700 bg-zinc-800 font-semibold"
+                    >
+                      {row.getVisibleCells().map((cell, index) => {
+                        const columnId = cell.column.id;
+
+                        if (index === 0) {
+                          return (
+                            <td key={columnId} className="px-4 py-3">
+                              {sector}
+                            </td>
+                          );
+                        }
+
+                        if (columnId === "investmentValue") {
+                          return (
+                            <td key={cell.id} className="px-4 py-3">
+                              ₹
+                              {Number(
+                                summary?.totalInvestment ?? 0
+                              ).toLocaleString()}
+                            </td>
+                          );
+                        }
+
+                        if (columnId === "presentValue") {
+                          return (
+                            <td key={cell.id} className="px-4 py-3">
+                              ₹
+                              {Number(
+                                summary?.totalPresentValue ?? 0
+                              ).toLocaleString()}
+                            </td>
+                          );
+                        }
+
+                        if (columnId === "gainLoss") {
+                          const val = Number(summary?.gainLoss ?? 0);
+                          return (
+                            <td
+                              key={cell.id}
+                              className={`px-4 py-3 ${
+                                val >= 0 ? "text-emerald-400" : "text-red-400"
+                              }`}
+                            >
+                              ₹{val.toLocaleString()}
+                            </td>
+                          );
+                        }
+
+                        return <td key={cell.id} className="px-4 py-3"></td>;
+                      })}
+                    </tr>
+                  );
+                }
+
+                return (
+                  <tr
+                    key={row.id}
+                    className="border-t border-zinc-800 hover:bg-zinc-800/40"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <td key={cell.id} className="px-4 py-3">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </td>
+                    ))}
+                  </tr>
+                );
+              })}
         </tbody>
 
         <tfoot className="bg-zinc-600 text-zinc-200 font-semibold">

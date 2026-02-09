@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Input } from "../../components/ui/Input";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -8,22 +10,51 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [name, setName] = useState("");
+
+  const [mode, setMode] = useState<"login" | "register">("login");
+
+  const router = useRouter();
+
   async function handleSubmit(e: React.SubmitEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      const res = await fetch("/api/login", {
+      const res = await fetch(`/api/${mode}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, name }),
       });
 
       const data = await res.json();
+
+      router.push("/dashboard");
+
       setLoading(false);
     } catch (err) {
       setLoading(false);
+      setError("An error occurred. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleTestLogin = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(""); 
+    try {
+      const res = await fetch(`/api/test-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        
+      });
+
+      const data = await res.json(); 
+      router.push("/dashboard");
+    } catch (err) {
       setError("An error occurred. Please try again.");
     } finally {
       setLoading(false);
@@ -37,40 +68,64 @@ export default function LoginPage() {
           Trading Dashboard
         </h1>
         <p className="mb-6 text-sm text-zinc-400">
-          Sign in to manage your portfolio
+          {mode} to manage your portfolio
         </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm mb-1 text-zinc-300">Email</label>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
+        <form onSubmit={handleSubmit} className="space-y-4 ">
+          <div
+            className={`  transition-all duration-300 overflow-hidden
+              ${
+                mode === "register"
+                  ? "max-h-40 opacity-100"
+                  : "max-h-0 opacity-0"
+              } `}
+          >
+            <Input label="Name" onChange={setName} value={name} type="text" />
           </div>
 
-          <div>
-            <label className="block text-sm mb-1 text-zinc-300">Password</label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg bg-zinc-800 border border-zinc-700 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-pink-500"
-            />
-          </div>
+          <Input label="Email" onChange={setEmail} value={email} type="email" />
+          <Input
+            label="Password"
+            onChange={setPassword}
+            value={password}
+            type="password"
+          />
 
           {error && <p className="text-sm text-red-400">{error}</p>}
 
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className=" flex-2  mt-2  w-full rounded-lg bg-pink-600 py-2 text-sm font-medium text-black hover:bg-pink-500 transition disabled:opacity-60"
+            >
+              {mode === "login"
+                ? loading
+                  ? "Signing in..."
+                  : "Sign In"
+                : loading
+                ? "Registering..."
+                : "Register"}
+            </button>
+
+            <button
+              type="submit"
+              disabled={loading}
+              onClick={ handleTestLogin }
+              className=" flex-1 mt-2 w-full rounded-lg border border-pink-600 py-2 text-sm font-medium text-pink-500 hover:border-pink-400 transition disabled:opacity-60"
+            >
+              Test User
+            </button>
+          </div>
+
           <button
-            type="submit"
-            disabled={loading}
-            className="mt-2 w-full rounded-lg bg-pink-600 py-2 text-sm font-medium text-black hover:bg-pink-500 transition disabled:opacity-60"
+            type="button"
+            onClick={() => setMode(mode === "login" ? "register" : "login")}
+            className="mt-2 cursor-pointer rounded-lg   py-2 text-sm font-medium text-pink-600 hover:underline   transition disabled:opacity-60"
           >
-            {loading ? "Signing in..." : "Sign In"}
+            {mode === "login"
+              ? "Don't have an account? Register"
+              : "Already have an account? Sign In"}
           </button>
         </form>
       </div>

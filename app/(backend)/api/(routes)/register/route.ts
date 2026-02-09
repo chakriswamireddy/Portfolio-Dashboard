@@ -7,7 +7,7 @@ import bcrypt from "bcrypt";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { email, password } = body;
+    const { email, password, name } = body;
 
     if (!email || !password) {
       return NextResponse.json(
@@ -16,24 +16,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log(hashedPassword)
-    const user = await db.select().from(users).where( eq(users.email, email) );   
+    const user = await db.select().from(users).where(eq(users.email, email));
 
-    if (user.length === 0) {
+    if (user.length !== 0) {
       return NextResponse.json(
-        { error: "User Not Found" },
-        { status: 401 }
+        { error: "User Already Exists" },
+        { status: 403 }
       );
     }
 
-    const passwordMatch = await bcrypt.compare(password, user[0].password);
-    if (! passwordMatch) {
-        return NextResponse.json(
-          { error: "Invalid credentials" },
-          { status: 401 }
-        );
-      }
+    const newUser = await db.insert(users).values({
+      email,
+      password: await bcrypt.hash(password, 10),
+      name
+    }).returning();
 
 
     const response = NextResponse.json({
@@ -42,28 +38,32 @@ export async function POST(req: Request) {
 
     response.cookies.set({
       name: "userId",
-      value: user[0].id,
+      value: newUser[0].id,
       httpOnly: true,
       path: "/",
       sameSite: "lax"
     });
 
-    if (! user[0].name) return response;
-    
+    if (!newUser[0].name) return response;
+
     response.cookies.set({
       name: "userName",
-      value: user[0].name,
+      value: newUser[0].name,
       httpOnly: true,
       path: "/",
       sameSite: "lax"
     });
+
 
     return response;
 
-  } catch {
+  } catch (e) {
     return NextResponse.json(
-      { error: "Invalid request" },
-      { status: 400 }
+      { msg: "Invalid request",
+        error : e
+       },
+      { status: 400 },
+
     );
   }
 }

@@ -6,18 +6,11 @@ import bcrypt from "bcrypt";
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const { email, password } = body;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password required" },
-        { status: 400 }
-      );
-    }
+    const email = process.env.TEST_USER_EMAIL || "";
+    const password = process.env.TEST_USER_PASSWORD || "";
 
-    // const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log(hashedPassword)
+
     const user = await db.select().from(users).where( eq(users.email, email) );   
 
     if (user.length === 0) {

@@ -24,7 +24,24 @@ export async function GET(req: Request) {
                 symbol: stockings.symbol,
                 stockName: stockings.stockName,
                 sector: stockings.sector,
-
+                exchange: stockings.exchange,
+                peRatio: stockings.peRatio,
+                portfolioPercentage: sql<number>`
+  ROUND(
+    COALESCE(
+      (${holdings.quantity} * ${holdings.purchasePrice})
+      /
+      NULLIF(
+        SUM(${holdings.quantity} * ${holdings.purchasePrice}) OVER (),
+        0
+      )
+      * 100,
+      0
+    ),
+    2
+  )
+`
+                ,
                 quantity: holdings.quantity,
                 purchasePrice: holdings.purchasePrice,
                 cmp: stockings.cmp,
