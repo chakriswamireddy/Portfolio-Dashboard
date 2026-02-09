@@ -16,6 +16,6 @@ jobs:
         with:
           node-version: "22.x"
 
-      - run: node dist/scrapeWorker.js
+      - run: npx ts-node scrapeWorker.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
