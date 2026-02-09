@@ -16,6 +16,6 @@ jobs:
         with:
           node-version: "22.x"
 
-      - run: npx ts-node scrapeWorker.ts
+      - run: npx tsx scrapeWorker.ts
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
