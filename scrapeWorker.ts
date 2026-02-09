@@ -9,76 +9,65 @@ import { fetchYahooCMP } from "./app/(backend)/api/lib/YahooFin";
 const INTERVAL_MS = 15_000;
 let running = false;
 
-function sleep(ms: number) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+function isMarketOpen(): boolean {
+  const now = new Date();
+
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+
+  return (
+    (hour > 9 && hour < 15) ||
+    (hour === 9 && minute >= 0) ||
+    (hour === 15 && minute <= 30)
+  );
 }
-
-export async function startScraperWorker() {
-  console.log("Scraper worker started");
-
-  while (true) {
-    if (!running) {
-      running = true;
-
-      try {
-        await runScrapeCycle();
-      } catch (err) {
-        console.error("Scrape cycle failed", err);
-      } finally {
-        running = false;
-      }
-    }
-
-    await sleep(INTERVAL_MS);
-  }
-}
-
-
-const isMarketOpen =
-  (() => {
-    const d = new Date();
-    return d.getHours() > 9 && d.getHours() < 15 ||
-           (d.getHours() === 9 && d.getMinutes() >= 0) ||
-           (d.getHours() === 15 && d.getMinutes() <= 30);
-  })();
-
-
-
 
 async function runScrapeCycle() {
   const stocks = await db.select().from(stockings);
 
   for (const stock of stocks) {
-    const result = await scrapeGoogleFundamentals({
-      symbol: stock.symbol,
-      exchange: stock.exchange
-    });
+    try {
+      const result = await scrapeGoogleFundamentals({
+        symbol: stock.symbol,
+        exchange: stock.exchange,
+      });
 
-    if (!result.success) continue;
+      if (!result.success) continue;
 
-    const updates : Record<string, any>= {
-      peRatio: result.peRatio,
-      earnings: result.earnings,
-      fundamentalsUpdatedAt: new Date()
+      const updates: Record<string, any> = {
+        peRatio: result.peRatio,
+        earnings: result.earnings,
+        fundamentalsUpdatedAt: new Date(),
+      };
+
+      if (isMarketOpen()) {
+        const cmp = await fetchYahooCMP(stock.symbol);
+        updates.cmp = Number(cmp);
+        updates.cmpUpdatedAt = new Date();
+      }
+
+      await db
+        .update(stockings)
+        .set(updates)
+        .where(eq(stockings.id, stock.id));
+
+    } catch (err) {
+      console.error(`Failed for ${stock.symbol}`, err);
     }
-
-
-
-    if (isMarketOpen) {
-    console.log("Scraping start......")
-      const cmp = await fetchYahooCMP(stock.symbol);
-      updates["cmp"] = Number(cmp)
-      updates["cmpUpdatedAt"] = new Date()
-    }
-    
-    await db
-      .update(stockings)
-      .set(updates)
-      .where(eq(stockings.id, stock.id));
   }
 }
 
+async function main() {
 
 
+  console.log("Running scrape cycle...");
+  await runScrapeCycle();
+  console.log("Scrape cycle complete.");
+}
 
-startScraperWorker().catch(console.error);
+main()
+  .then(() => process.exit(0))
+  .catch((err) => {
+    console.error("Worker crashed:", err);
+    process.exit(1);
+  });
